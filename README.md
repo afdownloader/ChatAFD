@@ -1,1 +1,1 @@
-# afdownloader.github.io/ChatAFD
+# ChatAFD
