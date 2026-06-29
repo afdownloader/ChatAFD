@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>ChatAFD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background 0.2s ease, color 0.2s;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        :root {
+            --bg-body: #f2f5f9;
+            --bg-card: #ffffff;
+            --bg-header: #f0f3f8;
+            --bg-input: #f0f4fc;
+            --bg-msg-user: #e1ecfe;
+            --bg-msg-bot: #eef2f7;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-light: #dce3ed;
+            --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.08);
+            --accent: #1e6df2;
+            --accent-hover: #1a5bd9;
+            --radius-card: 28px;
+            --radius-msg: 18px;
+            --badge-bg: #e1ecfe;
+            --badge-text: #1e6df2;
+            --code-bg: #1e293b;
+            --code-color: #e2e8f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0b0e14;
+            --bg-card: #1a1f2b;
+            --bg-header: #232a38;
+            --bg-input: #2a3344;
+            --bg-msg-user: #1e2b4a;
+            --bg-msg-bot: #262e3e;
+            --text-primary: #eef2f8;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-light: #2d3748;
+            --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.6);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --badge-bg: #1e2b4a;
+            --badge-text: #7aa9ff;
+            --code-bg: #0d1117;
+            --code-color: #e6edf3;
+        }
+
+        .chat-container {
+            max-width: 920px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+            max-height: 800px;
+            transition: background 0.2s;
+            border: 1px solid var(--border-light);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 24px;
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand i {
+            font-size: 2rem;
+            color: var(--accent);
+            filter: drop-shadow(0 2px 4px rgba(30, 109, 242, 0.2));
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            font-weight: 650;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .brand span {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .balance-badge {
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid var(--border-light);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-actions button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 40px;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-actions button:hover {
+            background: var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .messages-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 20px 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: var(--bg-body);
+            scroll-behavior: smooth;
+        }
+
+        .messages-wrapper::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .messages-wrapper::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 12px;
+        }
+
+        .message {
+            max-width: 88%;
+            padding: 12px 18px;
+            border-radius: var(--radius-msg);
+            font-size: 0.98rem;
+            line-height: 1.6;
+            word-wrap: break-word;
+            animation: fadeIn 0.25s ease;
+            position: relative;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--bg-msg-user);
+            color: var(--text-primary);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+            background: var(--bg-msg-bot);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message .msg-time {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            text-align: left;
+            opacity: 0.7;
+        }
+
+        .message .code-block {
+            position: relative;
+            margin: 8px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--code-bg);
+        }
+
+        .message .code-block pre {
+            padding: 16px;
+            margin: 0;
+            overflow-x: auto;
+            color: var(--code-color);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            background: var(--code-bg);
+        }
+
+        .message .code-block .code-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-wrap: wrap;
+        }
+
+        .message .code-block:hover .code-actions {
+            opacity: 1;
+        }
+
+        .message .code-block .code-actions button {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .message .code-block .code-actions button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--bg-msg-bot);
+            border-radius: 30px;
+            width: fit-content;
+            margin-top: 6px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.2s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-8px); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 20px 20px 20px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid var(--border-light);
+            border-radius: 40px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        .input-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(30, 109, 242, 0.15);
+        }
+
+        .input-area input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-area input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .input-area button {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 40px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 10px rgba(30, 109, 242, 0.25);
+            flex-shrink: 0;
+        }
+
+        .input-area button:hover {
+            background: var(--accent-hover);
+            transform: scale(0.97);
+        }
+
+        .input-area button:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.3);
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            padding: 4px 0 10px 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-light);
+        }
+
+        .offline-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .cursor-blink {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: var(--text-primary);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @media (max-width: 500px) {
+            .chat-container {
+                max-height: 100vh;
+                height: 100vh;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .brand h1 { font-size: 1.2rem; }
+            .message { max-width: 95%; }
+            .input-area { padding: 12px 16px; }
+            .balance-badge { font-size: 0.65rem; padding: 2px 10px; }
+            .message .code-block .code-actions {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container" id="appContainer">
+    <div class="chat-header">
+        <div class="brand">
+            <i class="fas fa-brain"></i>
+            <h1>Chat<span>AFD</span></h1>
+        </div>
+        <div class="header-actions">
+            <span class="balance-badge" id="balanceBadge">
+                <i class="fas fa-coins"></i> <span id="balanceText">نامشخص</span>
+            </span>
+            <button class="theme-toggle" id="themeToggle" aria-label="تغییر تم">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button id="clearChat" aria-label="پاک کردن گفتگو">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="messages-wrapper" id="messagesContainer">
+        <div class="message bot">
+            سلام! من <strong>ChatAFD</strong> هستم. هر سوالی داری بپرس!
+            <div class="msg-time">همین حالا</div>
+        </div>
+    </div>
+
+    <div id="typingIndicator" class="typing-indicator" style="display: none; margin: 0 20px 8px 20px; align-self: flex-start;">
+        <span></span><span></span><span></span>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="سوال یا دستور خود را بنویسید…" autocomplete="off">
+        <button id="sendBtn" aria-label="ارسال"><i class="fas fa-paper-plane"></i></button>
+    </div>
+    <div class="footer-note">
+        <i class="fas fa-database" style="margin-left: 6px;"></i> دیتابیس سیار · متصل به GapGPT
+        <span id="statusBadge" style="margin-right: 12px;"></span>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/html.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/css.min.js"></script>
+<script>
+    (function() {
+        "use strict";
+
+        const messagesContainer = document.getElementById('messagesContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearChat');
+        const themeToggle = document.getElementById('themeToggle');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const balanceText = document.getElementById('balanceText');
+        const statusBadge = document.getElementById('statusBadge');
+
+        // ---------- API GapGPT ----------
+        const API_KEY = 'sk-klhB3QLikOsYDQmle0UlzyfGF08UMiSM710QaDwXJT9bQkbw';
+        const API_URL = 'https://api.gapgpt.app/v1/chat/completions';
+
+        let isDark = false;
+        let isProcessing = false;
+        let isOfflineMode = false;
+        let currentStreamingMessage = null;
+        let currentStreamingText = '';
+        let cancelStream = false;
+
+        // ---------- Theme ----------
+        function applyTheme(dark) {
+            isDark = dark;
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            const icon = themeToggle.querySelector('i');
+            if (dark) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+            try { localStorage.setItem('chatAFD-theme', dark ? 'dark' : 'light'); } catch(e) {}
+        }
+
+        function toggleTheme() {
+            applyTheme(!isDark);
+        }
+
+        try {
+            const saved = localStorage.getItem('chatAFD-theme');
+            if (saved === 'dark') applyTheme(true);
+            else if (saved === 'light') applyTheme(false);
+            else {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark);
+            }
+        } catch(e) { applyTheme(false); }
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Helper: escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ---------- Add message with code block support ----------
+        function addMessage(text, sender = 'bot', timestamp = null, isCode = false, codeContent = '') {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message ${sender}`;
+
+            const contentDiv = document.createElement('div');
+            
+            if (isCode && codeContent) {
+                // code block with actions
+                const codeBlock = document.createElement('div');
+                codeBlock.className = 'code-block';
+                
+                const pre = document.createElement('pre');
+                const code = document.createElement('code');
+                code.className = 'language-javascript';
+                code.textContent = codeContent;
+                pre.appendChild(code);
+                codeBlock.appendChild(pre);
+                
+                // actions
+                const actions = document.createElement('div');
+                actions.className = 'code-actions';
+                
+                // copy
+                const copyBtn = document.createElement('button');
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> کپی';
+                copyBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(codeContent).then(() => {
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> شد';
+                        setTimeout(() => copyBtn.innerHTML = '<i class="fas fa-copy"></i> کپی', 2000);
+                    });
+                };
+                
+                // download
+                const downloadBtn = document.createElement('button');
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i> دانلود';
+                downloadBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    const blob = new Blob([codeContent], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `code-${Date.now()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                };
+                
+                // share
+                const shareBtn = document.createElement('button');
+                shareBtn.innerHTML = '<i class="fas fa-share-alt"></i> اشتراک';
+                shareBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'کد از ChatAFD',
+                            text: codeContent
+                        });
+                    } else {
+                        navigator.clipboard.writeText(codeContent).then(() => {
+                            alert('کد در کلیپ‌بورد کپی شد!');
+                        });
+                    }
+                };
+
+                // run (execute in browser)
+                const runBtn = document.createElement('button');
+                runBtn.innerHTML = '<i class="fas fa-play"></i> اجرا';
+                runBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    try {
+                        // try to evaluate code in a sandbox
+                        const result = eval(codeContent);
+                        alert('نتیجه اجرا: ' + (result !== undefined ? result : 'undefined'));
+                    } catch(err) {
+                        alert('خطا در اجرا: ' + err.message);
+                    }
+                };
+                
+                actions.appendChild(copyBtn);
+                actions.appendChild(downloadBtn);
+                actions.appendChild(shareBtn);
+                actions.appendChild(runBtn);
+                codeBlock.appendChild(actions);
+                contentDiv.appendChild(codeBlock);
+                
+                // highlight
+                setTimeout(() => {
+                    hljs.highlightElement(code);
+                }, 50);
+            } else {
+                // plain text with line breaks
+                contentDiv.innerHTML = text.replace(/\n/g, '<br>');
+            }
+            
+            wrapper.appendChild(contentDiv);
+            
+            const time = document.createElement('div');
+            time.className = 'msg-time';
+            if (timestamp) {
+                time.textContent = timestamp;
+            } else {
+                const now = new Date();
+                time.textContent = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+            }
+            wrapper.appendChild(time);
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return wrapper;
+        }
+
+        // ---------- Streaming ----------
+        function createStreamingMessage() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message bot';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.id = 'streaming-content';
+            
+            const cursor = document.createElement('span');
+            cursor.className = 'cursor-blink';
+            contentDiv.appendChild(cursor);
+            
+            wrapper.appendChild(contentDiv);
+            
+            const time = document.createElement('div');
+            time.className = 'msg-time';
+            const now = new Date();
+            time.textContent = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+            wrapper.appendChild(time);
+            
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            return wrapper;
+        }
+
+        function updateStreamingMessage(text) {
+            const contentDiv = document.getElementById('streaming-content');
+            if (contentDiv) {
+                // Detect code blocks with ```
+                if (text.includes('```')) {
+                    const parts = text.split('```');
+                    let html = '';
+                    for (let i = 0; i < parts.length; i++) {
+                        if (i % 2 === 0) {
+                            html += escapeHtml(parts[i]).replace(/\n/g, '<br>');
+                        } else {
+                            const lines = parts[i].split('\n');
+                            const lang = lines[0] || 'javascript';
+                            const codeContent = lines.slice(1).join('\n');
+                            html += `<div class="code-block"><pre><code class="language-${lang}">${escapeHtml(codeContent)}</code></pre></div>`;
+                        }
+                    }
+                    contentDiv.innerHTML = html + '<span class="cursor-blink"></span>';
+                    contentDiv.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    contentDiv.innerHTML = escapeHtml(text).replace(/\n/g, '<br>') + '<span class="cursor-blink"></span>';
+                }
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        function finishStreamingMessage(text) {
+            const contentDiv = document.getElementById('streaming-content');
+            if (contentDiv) {
+                // Remove cursor and finalize
+                let finalHtml = '';
+                if (text.includes('```')) {
+                    const parts = text.split('```');
+                    for (let i = 0; i < parts.length; i++) {
+                        if (i % 2 === 0) {
+                            finalHtml += escapeHtml(parts[i]).replace(/\n/g, '<br>');
+                        } else {
+                            const lines = parts[i].split('\n');
+                            const lang = lines[0] || 'javascript';
+                            const codeContent = lines.slice(1).join('\n');
+                            finalHtml += `<div class="code-block"><pre><code class="language-${lang}">${escapeHtml(codeContent)}</code></pre>`;
+                            // actions
+                            finalHtml += `<div class="code-actions">
+                                <button onclick="window.copyCode(this)"><i class="fas fa-copy"></i> کپی</button>
+                                <button onclick="window.downloadCode(this)"><i class="fas fa-download"></i> دانلود</button>
+                                <button onclick="window.shareCode(this)"><i class="fas fa-share-alt"></i> اشتراک</button>
+                                <button onclick="window.runCode(this)"><i class="fas fa-play"></i> اجرا</button>
+                            </div></div>`;
+                        }
+                    }
+                } else {
+                    finalHtml = escapeHtml(text).replace(/\n/g, '<br>');
+                }
+                contentDiv.innerHTML = finalHtml;
+                // register global functions for code actions
+                window.copyCode = function(btn) {
+                    const codeBlock = btn.closest('.code-block');
+                    const code = codeBlock.querySelector('code').textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        btn.innerHTML = '<i class="fas fa-check"></i> شد';
+                        setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i> کپی', 2000);
+                    });
+                };
+                window.downloadCode = function(btn) {
+                    const codeBlock = btn.closest('.code-block');
+                    const code = codeBlock.querySelector('code').textContent;
+                    const blob = new Blob([code], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `code-${Date.now()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                };
+                window.shareCode = function(btn) {
+                    const codeBlock = btn.closest('.code-block');
+                    const code = codeBlock.querySelector('code').textContent;
+                    if (navigator.share) {
+                        navigator.share({ title: 'کد از ChatAFD', text: code });
+                    } else {
+                        navigator.clipboard.writeText(code).then(() => {
+                            alert('کد در کلیپ‌بورد کپی شد!');
+                        });
+                    }
+                };
+                window.runCode = function(btn) {
+                    const codeBlock = btn.closest('.code-block');
+                    const code = codeBlock.querySelector('code').textContent;
+                    try {
+                        const result = eval(code);
+                        alert('نتیجه اجرا: ' + (result !== undefined ? result : 'undefined'));
+                    } catch(err) {
+                        alert('خطا در اجرا: ' + err.message);
+                    }
+                };
+                contentDiv.querySelectorAll('pre code').forEach(block => {
+                    hljs.highlightElement(block);
+                });
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        // ---------- Clear chat ----------
+        function clearChat() {
+            while (messagesContainer.firstChild) {
+                messagesContainer.removeChild(messagesContainer.firstChild);
+            }
+            const msg = document.createElement('div');
+            msg.className = 'message bot';
+            msg.innerHTML = '<div>سلام! من <strong>ChatAFD</strong> هستم. هر سوالی داری بپرس!</div><div class="msg-time">همین حالا</div>';
+            messagesContainer.appendChild(msg);
+            typingIndicator.style.display = 'none';
+        }
+        clearBtn.addEventListener('click', clearChat);
+
+        // ---------- Offline responses ----------
+        function getOfflineResponse(userMsg) {
+            const msg = userMsg.toLowerCase().trim();
+            if (msg.includes('سلام') || msg.includes('درود') || msg.includes('هی')) {
+                return 'سلام! 👋 وقت بخیر. من ChatAFD هستم. متأسفانه ارتباط با GapGPT برقرار نیست، اما خوشحالم که میتونم کمکت کنم.';
+            }
+            if (msg.includes('کد') || msg.includes('برنامه') || msg.includes('برنامه نویسی')) {
+                return '```javascript\nconsole.log("سلام از ChatAFD!");\n\n// این یک نمونه کد است\nfunction hello() {\n  return "ChatAFD هوشمند!";\n}\n```';
+            }
+            return '🤖 متأسفانه ارتباط با GapGPT برقرار نیست. سوالت رو بپرس، سعی میکنم بهترین کمک رو بکنم.';
+        }
+
+        // ---------- Call GapGPT API with Streaming ----------
+        async function sendToGapGPT(userMessage) {
+            if (!userMessage.trim()) return;
+
+            addMessage(userMessage, 'user');
+            userInput.value = '';
+            userInput.focus();
+            
+            isProcessing = true;
+            sendBtn.disabled = true;
+            typingIndicator.style.display = 'flex';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            if (isOfflineMode) {
+                typingIndicator.style.display = 'none';
+                const reply = getOfflineResponse(userMessage);
+                if (reply.includes('```')) {
+                    const codeMatch = reply.match(/```(\w+)?\n([\s\S]*?)```/);
+                    if (codeMatch) {
+                        addMessage('', 'bot', null, true, codeMatch[2]);
+                    }
+                } else {
+                    addMessage(reply, 'bot');
+                }
+                isProcessing = false;
+                sendBtn.disabled = false;
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gapgpt-qwen-3.5',
+                        messages: [
+                            { role: 'system', content: 'شما یک دستیار هوشمند با نام ChatAFD هستید. پاسخ‌ها را به فارسی روان و دقیق بدهید. اگر کد می‌دهید، با سه بک‌تیک شروع کنید.' },
+                            { role: 'user', content: userMessage }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                        stream: true
+                    })
+                });
+
+                typingIndicator.style.display = 'none';
+
+                if (!response.ok) {
+                    let errMsg = `خطای ${response.status}`;
+                    try {
+                        const errData = await response.json();
+                        if (errData?.error?.message) errMsg = errData.error.message;
+                    } catch(e) {}
+                    
+                    if (errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('insufficient') || 
+                        errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('rate')) {
+                        isOfflineMode = true;
+                        updateBalanceBadge('۰ (آفلاین)');
+                        statusBadge.innerHTML = '<span class="offline-badge"><i class="fas fa-wifi-slash"></i> آفلاین</span>';
+                        const reply = getOfflineResponse(userMessage);
+                        if (reply.includes('```')) {
+                            const codeMatch = reply.match(/```(\w+)?\n([\s\S]*?)```/);
+                            if (codeMatch) {
+                                addMessage('', 'bot', null, true, codeMatch[2]);
+                            }
+                        } else {
+                            addMessage(reply, 'bot');
+                        }
+                        isProcessing = false;
+                        sendBtn.disabled = false;
+                        return;
+                    }
+                    throw new Error(errMsg);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = '';
+                let streamingMessage = createStreamingMessage();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') continue;
+                            try {
+                                const json = JSON.parse(data);
+                                const content = json.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullText += content;
+                                    updateStreamingMessage(fullText);
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
+
+                finishStreamingMessage(fullText);
+                statusBadge.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-circle"></i> آنلاین</span>';
+                updateBalanceBadge('✓ فعال');
+
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                console.error('GapGPT API error:', error);
+                const errMsg = error.message || 'مشکل نامشخص';
+                
+                if (errMsg.toLowerCase().includes('balance') || errMsg.toLowerCase().includes('insufficient') || 
+                    errMsg.toLowerCase().includes('credit') || errMsg.toLowerCase().includes('rate')) {
+                    isOfflineMode = true;
+                    updateBalanceBadge('۰ (آفلاین)');
+                    statusBadge.innerHTML = '<span class="offline-badge"><i class="fas fa-wifi-slash"></i> آفلاین</span>';
+                    const reply = getOfflineResponse(userMessage);
+                    if (reply.includes('```')) {
+                        const codeMatch = reply.match(/```(\w+)?\n([\s\S]*?)```/);
+                        if (codeMatch) {
+                            addMessage('', 'bot', null, true, codeMatch[2]);
+                        }
+                    } else {
+                        addMessage(reply, 'bot');
+                    }
+                } else {
+                    addMessage(`⚠️ خطا: ${errMsg}`, 'bot');
+                }
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        // ---------- UI state ----------
+        function updateBalanceBadge(text) {
+            balanceText.textContent = text;
+        }
+
+        function handleSend() {
+            if (isProcessing) return;
+            const msg = userInput.value.trim();
+            if (msg) {
+                sendToGapGPT(msg);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        // ---------- Check status ----------
+        async function checkStatus() {
+            try {
+                const resp = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gapgpt-qwen-3.5',
+                        messages: [{ role: 'user', content: 'ping' }],
+                        max_tokens: 1
+                    })
+                });
+                if (resp.status === 401 || resp.status === 403) {
+                    isOfflineMode = true;
+                    updateBalanceBadge('❌ نامعتبر');
+                    statusBadge.innerHTML = '<span class="offline-badge"><i class="fas fa-wifi-slash"></i> آفلاین</span>';
+                    return;
+                }
+                if (resp.ok) {
+                    statusBadge.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-circle"></i> آنلاین</span>';
+                    updateBalanceBadge('✓ فعال');
+                } else {
+                    updateBalanceBadge('❓');
+                }
+            } catch(e) {
+                updateBalanceBadge('❓');
+            }
+        }
+
+        checkStatus();
+        userInput.focus();
+
+        console.log('ChatAFD active · connected to GapGPT');
+    })();
+</script>
+</body>
+</html>
