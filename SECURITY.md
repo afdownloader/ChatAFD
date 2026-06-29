@@ -9,7 +9,7 @@ currently being supported with security updates.
 | ------- | ------------------ |
 |  2029   | coming soon        |
 |  2028   | coming soon        |
-|  2027   | :white_check:      |
+|  2027   | 🔄                |
 |  2026   | :white_check_mark: |
 
 ## Reporting a Vulnerability
